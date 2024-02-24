@@ -3,11 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="name.cpr">
 
-    <!-- Don't forget the internet permission if you will be using the WebView to load remote content -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -18,7 +16,7 @@
         <activity
             android:name=".ExampleActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:label="@string/app_name"> <!-- Prevent Activity restart on such events (specially on orientation change) -->
+            android:exported="true"> <!-- Prevent Activity restart on such events (specially on orientation change) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
