@@ -12,11 +12,6 @@ import android.widget.FrameLayout;
  * This class serves as a WebChromeClient to be set to a WebView, allowing it to play video.
  * Video will play differently depending on target API level (in-line, fullscreen, or both).
  * <p>
- * It has been tested with the following video classes:
- * - android.widget.VideoView (typically API level <11)
- * - android.webkit.HTML5VideoFullScreen$VideoSurfaceView/VideoTextureView (typically API level 11-18)
- * - com.android.org.chromium.content.browser.ContentVideoView$VideoSurfaceView (typically API level 19+)
- * <p>
  * Important notes:
  * - For API level 11+, android:hardwareAccelerated="true" must be set in the application manifest.
  * - The invoking activity must call VideoEnabledWebChromeClient's onBackPressed() inside of its own onBackPressed().
@@ -123,7 +118,6 @@ public class VideoEnabledWebChromeClient extends WebChromeClient implements Medi
         if (view instanceof FrameLayout) {
             // A video wants to be shown
             FrameLayout frameLayout = (FrameLayout) view;
-            View focusedChild = frameLayout.getFocusedChild();
 
             // Save video related variables
             this.isVideoFullscreen = true;
@@ -134,43 +128,6 @@ public class VideoEnabledWebChromeClient extends WebChromeClient implements Medi
             activityNonVideoView.setVisibility(View.INVISIBLE);
             activityVideoView.addView(videoViewContainer, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             activityVideoView.setVisibility(View.VISIBLE);
-
-            if (focusedChild instanceof android.widget.VideoView) {
-                // android.widget.VideoView (typically API level <11)
-                android.widget.VideoView videoView = (android.widget.VideoView) focusedChild;
-
-                // Handle all the required events
-                videoView.setOnPreparedListener(this);
-                videoView.setOnCompletionListener(this);
-                videoView.setOnErrorListener(this);
-            } else {
-                // Other classes, including:
-                // - android.webkit.HTML5VideoFullScreen$VideoSurfaceView, which inherits from android.view.SurfaceView (typically API level 11-18)
-                // - android.webkit.HTML5VideoFullScreen$VideoTextureView, which inherits from android.view.TextureView (typically API level 11-18)
-                // - com.android.org.chromium.content.browser.ContentVideoView$VideoSurfaceView, which inherits from android.view.SurfaceView (typically API level 19+)
-
-                // Handle HTML5 video ended event only if the class is a SurfaceView
-                // Test case: TextureView of Sony Xperia T API level 16 doesn't work fullscreen when loading the javascript below
-                if (webView != null && webView.getSettings().getJavaScriptEnabled() && focusedChild instanceof SurfaceView) {
-                    // Run javascript code that detects the video end and notifies the Javascript interface
-                    String js = "javascript:";
-                    js += "var _ytrp_html5_video_last;";
-                    js += "var _ytrp_html5_video = document.getElementsByTagName('video')[0];";
-                    js += "if (_ytrp_html5_video != undefined && _ytrp_html5_video != _ytrp_html5_video_last) {";
-                    {
-                        js += "_ytrp_html5_video_last = _ytrp_html5_video;";
-                        js += "function _ytrp_html5_video_ended() {";
-                        {
-                            js += "_VideoEnabledWebView.notifyVideoEnd();"; // Must match Javascript interface name and method of VideoEnableWebView
-                        }
-                        js += "}";
-                        js += "_ytrp_html5_video.addEventListener('ended', _ytrp_html5_video_ended);";
-                    }
-                    js += "}";
-                    Log.e(TAG, js);
-                    webView.loadUrl(js);
-                }
-            }
 
             // Notify full-screen change
             if (toggledFullscreenCallback != null) {

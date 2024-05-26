@@ -23,23 +23,6 @@ import java.util.Map;
  * @author Cristian Perez (http://cpr.name)
  */
 public class VideoEnabledWebView extends WebView {
-    public class JavascriptInterface {
-        @android.webkit.JavascriptInterface
-        @SuppressWarnings("unused")
-        public void notifyVideoEnd() // Must match Javascript interface method of VideoEnabledWebChromeClient
-        {
-            Log.d("___", "GOT IT");
-            // This code is not executed in the UI thread, so we must force that to happen
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    if (videoEnabledWebChromeClient != null) {
-                        videoEnabledWebChromeClient.onHideCustomView();
-                    }
-                }
-            });
-        }
-    }
 
     private VideoEnabledWebChromeClient videoEnabledWebChromeClient;
     private boolean addedJavascriptInterface;
@@ -113,10 +96,6 @@ public class VideoEnabledWebView extends WebView {
 
     private void addJavascriptInterface() {
         if (!addedJavascriptInterface) {
-            // Add javascript interface to be called when the video ends (must be done before page load)
-            //noinspection all
-            addJavascriptInterface(new JavascriptInterface(), "_VideoEnabledWebView"); // Must match Javascript interface name of VideoEnabledWebChromeClient
-
             addedJavascriptInterface = true;
         }
     }
